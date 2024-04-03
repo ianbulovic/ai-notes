@@ -1,0 +1,18 @@
+[whisper]
+host = "localhost"
+port = 8081
+
+[whisper.backend]
+executable = "whisper.cpp/server"
+model = "whisper.cpp/models/ggml-base.en.bin"
+
+
+[ollama]
+host = "localhost"
+port = 8082
+
+[ollama.frontend]
+model = "mistral:v0.2"
+
+[ollama.backend]
+executable = "/usr/local/bin/ollama"

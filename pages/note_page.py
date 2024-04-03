@@ -47,9 +47,14 @@ if note.audio_file:
             note.content = transcription
             st.session_state["conversation"] = start_conversation_about_note(note)
 
-# Note content input
-note.content = autosize_textarea(value=note.content, key=f"note-content")
+raw, markdown = st.tabs(tabs=["Raw", "Markdown"])
 
+with raw:
+    # Note content input
+    note.content = autosize_textarea(value=note.content, key=f"note-content")
+
+with markdown:
+    st.markdown(note.content, unsafe_allow_html=True)
 
 # Update note title if it has changed
 try:

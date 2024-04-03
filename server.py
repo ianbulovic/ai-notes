@@ -4,7 +4,6 @@ import time
 import tomllib
 import logging
 from typing import IO
-import requests
 import threading
 import signal
 
@@ -34,16 +33,6 @@ class Server:
         )
         self.processes["whisper"] = process
         self.start_logging_threads("whisper", process)
-        # wait for the server to start
-        for _ in range(10):
-            time.sleep(1)
-            try:
-                requests.get(f"http://{host}:{port}")
-                break
-            except requests.exceptions.ConnectionError:
-                pass
-        else:
-            raise Exception("Could not start the whisper.cpp server.")
 
     def serve_ollama_backend(self):
         executable = self.config["ollama"]["backend"]["executable"]

@@ -189,7 +189,14 @@ def load_notes(
             if file.endswith(".note"):
                 notes.append(load_note(file))
         break  # ignore subdirs for now
-    notes = [n for n in notes if search_query.lower() in n.title.lower()]
+    notes = [
+        n
+        for n in notes
+        if (
+            search_query.lower() in n.title.lower()
+            or any(search_query.lower() in t.name.lower() for t in n.tags)
+        )
+    ]
     if sort_mode == "Last opened":
         notes.sort(key=lambda n: n.last_opened, reverse=True)
     elif sort_mode == "Creation date":

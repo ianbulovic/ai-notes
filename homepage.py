@@ -34,7 +34,7 @@ with view_notes_tab:
 
     l, r = st.columns([3, 1])
     with l:
-        search_query = st.text_input("Search", key="search")
+        search_query = st.text_input("Search by title or tag", key="note-search")
     with r:
         sort_mode = st.selectbox("Sort by", ["Last opened", "Creation date", "Title"])
         sort_mode = sort_mode or "Last opened"

@@ -1,34 +1,19 @@
 import tomllib
 from typing import Literal
 import requests
+from src import CONFIG
 from src.note import Note
 from ollama import Client as OllamaClient, Message, Options
 
-# TODO make config file
-# config = {
-#     "whisper": {
-#         "host": "localhost",
-#         "port": 8081,
-#     },
-#     "ollama": {
-#         "model": "mistral:v0.2",
-#         "host": "localhost",
-#         "port": 8082,
-#     },
-# }
 
-
-with open("config.toml", "rb") as f:
-    config = tomllib.load(f)
-
-ollama_url = f"http://{config['ollama']['host']}:{config['ollama']['port']}"
+ollama_url = f"http://{CONFIG['ollama']['host']}:{CONFIG['ollama']['port']}"
 LLM = OllamaClient(ollama_url)
 
 
 class OllamaConversation:
     def __init__(
         self,
-        model=config["ollama"]["frontend"]["model"],
+        model=CONFIG["ollama"]["frontend"]["model"],
         system_message: str | None = None,
     ):
         self.model = model
@@ -70,7 +55,7 @@ def start_conversation_about_note(note: Note) -> OllamaConversation:
 
 def transcribe_wav(wav_file: str) -> str:
     endpoint = (
-        f"http://{config['whisper']['host']}:{config['whisper']['port']}/inference"
+        f"http://{CONFIG['whisper']['host']}:{CONFIG['whisper']['port']}/inference"
     )
     try:
         response = requests.post(

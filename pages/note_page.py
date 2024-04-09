@@ -1,5 +1,6 @@
 import streamlit as st
 from src.note import Note, ValidationError
+from src.tag import Tag, load_tags
 from src.nlp import summarize_note, start_conversation_about_note, transcribe_wav
 from src.utils import smart_datetime_string
 from autosize_textarea import autosize_textarea
@@ -16,18 +17,24 @@ if "note_id" not in st.session_state or st.session_state["note_id"] != note.id:
     st.session_state["conversation"] = start_conversation_about_note(note)
 
 
-# Add css to make title input bigger
-st.markdown(
-    "<style> input { font-size: 2rem !important; } </style>",
-    unsafe_allow_html=True,
-)
-
+st.write('<span class="title-input-marker"/>', unsafe_allow_html=True)
 new_title = st.text_input(
     "Title",
     value=note.title,
     label_visibility="collapsed",
     key=f"note-title",
 )
+# Add css to make title input bigger
+st.markdown(
+    """
+<style>
+    .element-container:has(.title-input-marker) + div input {
+        font-size: 2.5em; 
+    }
+</style>""",
+    unsafe_allow_html=True,
+)
+
 
 # an error might occur if the title is invalid or already exists
 title_error_container = st.empty()
@@ -50,13 +57,11 @@ if note.audio_file:
 raw, markdown = st.tabs(tabs=["Raw", "Markdown"])
 
 with raw:
-    # Note content input
     note.content = autosize_textarea(value=note.content, key=f"note-content")
 
 with markdown:
     st.markdown(note.content, unsafe_allow_html=True)
 
-# Update note title if it has changed
 try:
     if new_title != note.title:
         note.title = new_title
@@ -77,7 +82,6 @@ with st.sidebar:
     st.page_link(
         "homepage.py", label="Back to Notes", icon="🏠", use_container_width=True
     )
-    # st.divider()
 
     info, actions, chat = st.tabs(tabs=["Info", "Actions", "Chat"])
 
@@ -86,10 +90,25 @@ with st.sidebar:
         st.write(f"__Created:__ {smart_datetime_string(note.created)}")
         st.write(f"__Last modified:__ {smart_datetime_string(note.last_modified)}")
         st.write(f"__Last opened:__ {smart_datetime_string(note.last_opened)}")
-        # st.divider()
         n_words = len(note.content.split())
         n_chars = len(note.content)
         st.write(f"{n_words} words, {n_chars} characters")
+        st.divider()
+        st.subheader("Tags:")
+        tag_cols = st.columns(3)
+        for i, tag in enumerate(note.tags):
+            with tag_cols[i % 3]:
+                st.write(tag.name)
+
+        with st.popover("Add Tag"):
+            existing_tags = load_tags()
+            if existing_tags:
+                st.selectbox(
+                    "Select a tag",
+                    options=[tag.name for tag in existing_tags],
+                    key="tag-select",
+                )
+            st.text_input("New tag name", key="new-tag-name")
 
     with actions:
         st.header("Actions")

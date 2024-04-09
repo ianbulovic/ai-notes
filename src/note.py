@@ -2,9 +2,9 @@ from datetime import datetime
 import json
 from typing import TypedDict
 import os
+from src.tag import Tag, get_tag_by_id
 from src.utils import note_exists, is_valid_filename, get_default_note_title
-
-NOTES_DIR = "notes"
+from src import NOTES_DIR
 
 
 class ValidationError(Exception):
@@ -22,6 +22,7 @@ class SerializedNote(TypedDict):
     last_opened: float
     audio_file: str
     summary: str
+    tag_ids: list[int]
 
 
 class Note:
@@ -34,16 +35,17 @@ class Note:
 
     def __init__(self, audio_file=None) -> None:
         """Create a new note with default values."""
-        self._id = int(datetime.now().timestamp() * 1e6)
+        now = datetime.now()
+        self._id = int(now.timestamp() * 1e6)
         self._content = ""
         self._title = get_default_note_title(NOTES_DIR, "New note")
-        now = datetime.now()
         self.created = now
         self.last_modified = now
         self.last_opened = now
         self.last_save_location = None
         self._audio_file: str | None = audio_file
         self._summary: str = ""
+        self._tags: list[Tag] = []
 
     @property
     def id(self):
@@ -57,8 +59,8 @@ class Note:
     def title(self, value):
         if self._title == value:
             return
-        if not is_valid_filename(f"{value}.json"):
-            raise ValidationError(f"{value}.json is not a valid filename")
+        if not is_valid_filename(f"{value}.note"):
+            raise ValidationError(f"{value} is not a valid filename")
         elif note_exists(NOTES_DIR, value):
             raise ValueError(f"a note named {value} already exists")
         self._title = value
@@ -96,6 +98,10 @@ class Note:
         self.last_modified = datetime.now()
         self.save()
 
+    @property
+    def tags(self):
+        return self._tags
+
     def serialize(self) -> SerializedNote:
         """Serialize the note to a JSON-compatible dictionary."""
         return {
@@ -107,6 +113,7 @@ class Note:
             "last_opened": self.last_opened.timestamp(),
             "audio_file": self._audio_file or "",
             "summary": self._summary,
+            "tag_ids": [tag.id for tag in self._tags],
         }
 
     def load_from_serialized(self, sn: SerializedNote):
@@ -119,6 +126,7 @@ class Note:
         self.last_opened = datetime.fromtimestamp(sn["last_opened"])
         self._audio_file = sn["audio_file"] or None
         self._summary = sn["summary"]
+        self._tags = [get_tag_by_id(tag_id) for tag_id in sn["tag_ids"]]
 
     def save(self):
         """
@@ -128,7 +136,7 @@ class Note:
         - If the note has been saved before but the title has changed since the last save,
         the old file is deleted and the note is saved to a new file.
         """
-        outfile = os.path.join(NOTES_DIR, f"{self.title}.json")
+        outfile = os.path.join(NOTES_DIR, f"{self.title}.note")
         with open(outfile, "w+") as f:
             s = json.dumps(self.serialize(), indent=4)
             f.write(s)
@@ -164,7 +172,8 @@ def load_notes(
     notes = []
     for path, dirs, files in os.walk(dir):
         for file in files:
-            notes.append(load_note(file))
+            if file.endswith(".note"):
+                notes.append(load_note(file))
         break  # ignore subdirs for now
     notes = [n for n in notes if search_query.lower() in n.title.lower()]
     if sort_mode == "Last opened":

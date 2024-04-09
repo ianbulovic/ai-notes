@@ -1,3 +1,6 @@
+[settings]
+debug = true
+
 [whisper]
 host = "localhost"
 port = 8081

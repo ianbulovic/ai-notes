@@ -45,7 +45,7 @@ class Note:
         self.last_save_location = None
         self._audio_file: str | None = audio_file
         self._summary: str = ""
-        self._tags: list[Tag] = []
+        self._tags: set[Tag] = set()
 
     @property
     def id(self):
@@ -102,6 +102,18 @@ class Note:
     def tags(self):
         return self._tags
 
+    def add_tag(self, tag: Tag):
+        if tag not in self._tags:
+            self._tags.add(tag)
+            self.last_modified = datetime.now()
+            self.save()
+
+    def remove_tag(self, tag: Tag):
+        if tag in self._tags:
+            self._tags.remove(tag)
+            self.last_modified = datetime.now()
+            self.save()
+
     def serialize(self) -> SerializedNote:
         """Serialize the note to a JSON-compatible dictionary."""
         return {
@@ -126,7 +138,9 @@ class Note:
         self.last_opened = datetime.fromtimestamp(sn["last_opened"])
         self._audio_file = sn["audio_file"] or None
         self._summary = sn["summary"]
-        self._tags = [get_tag_by_id(tag_id) for tag_id in sn["tag_ids"]]
+        # be careful not to load tags that have been deleted
+        tags_or_none = [get_tag_by_id(tag_id) for tag_id in sn["tag_ids"]]
+        self._tags = set([tag for tag in tags_or_none if tag is not None])
 
     def save(self):
         """

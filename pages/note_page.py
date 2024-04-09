@@ -2,7 +2,7 @@ import streamlit as st
 from src.note import Note, ValidationError
 from src.tag import Tag, load_tags
 from src.nlp import summarize_note, start_conversation_about_note, transcribe_wav
-from src.utils import smart_datetime_string
+from src.utils import generate_random_hex_color, smart_datetime_string
 from autosize_textarea import autosize_textarea
 
 if "current_note" not in st.session_state:
@@ -87,28 +87,92 @@ with st.sidebar:
 
     with info:
         st.header(f"{note.title}")
+        st.divider()
+        st.subheader("Tags")
+        with st.popover(
+            "Edit Tags",
+            help="Add or remove tags from this note.",
+            use_container_width=True,
+        ):
+            use_existing, create_new, remove = st.tabs(
+                ["Add an existing tag", "Create a new tag", "Remove tags"]
+            )
+            with use_existing:
+                existing_tags = load_tags()
+                if existing_tags:
+                    existing_name = st.selectbox(
+                        "Select a tag",
+                        options=[tag.name for tag in existing_tags],
+                        key="tag-select",
+                    )
+                    if st.button("Add Tag", use_container_width=True, type="primary"):
+                        tag = next(
+                            (t for t in existing_tags if t.name == existing_name), None
+                        )
+                        if tag:
+                            note.add_tag(tag)
+                            st.write(f"Added tag '{tag.name}'")
+            with create_new:
+                new_tag_name = st.text_input("New tag name", key="new-tag-name")
+                name_error_container = st.empty()
+                if f"tag-color-picker-state" not in st.session_state:
+                    st.session_state[f"tag-color-picker-state"] = (
+                        generate_random_hex_color()
+                    )
+                new_tag_color = st.color_picker(
+                    "Tag color",
+                    key=f"tag-color-picker-state-{note.id}",
+                    value=st.session_state[f"tag-color-picker-state"],
+                )
+                st.session_state[f"tag-color-picker-state"] = new_tag_color
+                submitted = st.button(
+                    "Add Tag",
+                    use_container_width=True,
+                    type="primary",
+                    key=f"add-tag-{note.id}",
+                )
+                if submitted:
+                    if not new_tag_name:
+                        with name_error_container:
+                            st.error("Tag name can't be empty.")
+                    else:
+                        new_tag = Tag(name=new_tag_name, color=new_tag_color)
+                        note.add_tag(new_tag)
+                        st.write(f"Added tag '{new_tag_name}'")
+            with remove:
+                for tag in note.tags:
+                    with st.container():
+                        st.markdown(
+                            f'<span class="remove-tag-button-{tag.id}"/>',
+                            unsafe_allow_html=True,
+                        )
+                        if st.button(
+                            f"{tag.name}",
+                            key=f"remove-tag-{tag.id}",
+                            type="secondary",
+                            help=f"Remove the tag {tag.name} from this note.",
+                        ):
+                            note.remove_tag(tag)
+                            st.rerun()
+                        st.markdown(
+                            f"""
+                        <style>
+                            .element-container:has(.remove-tag-button-{tag.id}) + div button {{
+                                background-color: {tag.color};
+                                color: {tag.foreground_color()}
+                            }}
+                        </style>""",
+                            unsafe_allow_html=True,
+                        )
+        for i, tag in enumerate(note.tags):
+            st.markdown(tag.as_html_span(), unsafe_allow_html=True)
+        st.divider()
         st.write(f"__Created:__ {smart_datetime_string(note.created)}")
         st.write(f"__Last modified:__ {smart_datetime_string(note.last_modified)}")
         st.write(f"__Last opened:__ {smart_datetime_string(note.last_opened)}")
         n_words = len(note.content.split())
         n_chars = len(note.content)
         st.write(f"{n_words} words, {n_chars} characters")
-        st.divider()
-        st.subheader("Tags:")
-        tag_cols = st.columns(3)
-        for i, tag in enumerate(note.tags):
-            with tag_cols[i % 3]:
-                st.write(tag.name)
-
-        with st.popover("Add Tag"):
-            existing_tags = load_tags()
-            if existing_tags:
-                st.selectbox(
-                    "Select a tag",
-                    options=[tag.name for tag in existing_tags],
-                    key="tag-select",
-                )
-            st.text_input("New tag name", key="new-tag-name")
 
     with actions:
         st.header("Actions")

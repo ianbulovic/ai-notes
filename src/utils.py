@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import os
 from pathvalidate import validate_filename, ValidationError
+import random
 
 
 def note_exists(dir, name):
@@ -49,3 +50,8 @@ def smart_datetime_string(dt: datetime):
         return f"Yesterday at {dt.strftime('%I:%M %p')}"
     else:
         return dt.strftime("%m/%d/%Y at %I:%M %p")
+
+
+def generate_random_hex_color() -> str:
+    """Generate a random color in hex format."""
+    return f"#{random.randint(0, 255):02x}{random.randint(0, 255):02x}{random.randint(0, 255):02x}"

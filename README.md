@@ -4,7 +4,7 @@
 ```bash
 conda create -n ai-notes python=3.12
 conda activate ai-notes
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 ## Running the server

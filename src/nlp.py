@@ -60,7 +60,7 @@ def transcribe_wav(wav_file: str) -> str:
     try:
         response = requests.post(
             endpoint,
-            files={"file": wav_file},
+            files={"file": ("audio.wav", open(wav_file, "rb"), "audio/wav")},
             data={
                 "temperature": "0.0",
                 "temperature_inc": "0.2",

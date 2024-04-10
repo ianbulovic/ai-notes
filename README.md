@@ -1,6 +1,9 @@
 # AI Notes
 
 ## Setup
+1. Clone this repository.
+2. Install the required packages.
+
 ```bash
 conda create -n ai-notes python=3.12
 conda activate ai-notes

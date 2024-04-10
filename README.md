@@ -29,6 +29,8 @@ python -m pip install -e components/streamlit-audiorecorder
 python -m pip install -e components/streamlit-autosize-textarea
 ```
 
+5. For audio recording, you will also need a working installation of ffmpeg.
+
 ## Running the server
 ```bash
 python server.py

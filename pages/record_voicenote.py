@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 from audiorecorder import audiorecorder
 from src.note import NOTES_DIR, Note
@@ -22,7 +23,10 @@ audio = audiorecorder(
     key=f"record-audio-button",
 )
 if len(audio) > 0:
-    audio_path = NOTES_DIR + f"/audio/{note.title}.wav"
+    audio_dir = os.path.join(NOTES_DIR, "audio")
+    if not os.path.exists(audio_dir):
+        os.makedirs(audio_dir)
+    audio_path = os.path.join(audio_dir, f"{note.title}.wav")
 
     # Format audio for whisper.cpp transcription
     audio = audio.set_frame_rate(16000)

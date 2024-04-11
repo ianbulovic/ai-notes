@@ -159,7 +159,7 @@ with st.sidebar:
                         <style>
                             .element-container:has(.remove-tag-button-{tag.id}) + div button {{
                                 background-color: {tag.color};
-                                color: {tag.foreground_color()}
+                                color: {tag.foreground_color()};
                             }}
                         </style>""",
                             unsafe_allow_html=True,

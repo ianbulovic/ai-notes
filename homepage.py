@@ -1,4 +1,5 @@
 from datetime import datetime
+import re
 import streamlit as st
 from src.note import Note, load_notes
 from src.tag import load_tags, delete_tag
@@ -36,10 +37,37 @@ with view_notes_tab:
     with l:
         search_query = st.text_input("Search by title or tag", key="note-search")
     with r:
-        sort_mode = st.selectbox("Sort by", ["Last opened", "Creation date", "Title"])
+        sort_options = ["Last opened", "Creation date", "Title"]
+        if search_query:
+            sort_options.insert(0, "Relevance")
+        sort_mode = st.selectbox("Sort by", sort_options)
         sort_mode = sort_mode or "Last opened"
 
-    notes = load_notes(search_query, sort_mode)
+    notes = load_notes()
+    if search_query:
+        title_matches = [n for n in notes if search_query.lower() in n.title.lower()]
+        tag_matches = [
+            n
+            for n in notes
+            if any(search_query.lower() in t.name.lower() for t in n.tags)
+            and n not in title_matches
+        ]
+        content_matches = [
+            n
+            for n in notes
+            if search_query.lower() in n.content.lower()
+            and n not in title_matches
+            and n not in tag_matches
+        ]
+        notes = title_matches + tag_matches + content_matches
+
+    if sort_mode == "Last opened":
+        notes.sort(key=lambda n: n.last_opened, reverse=True)
+    elif sort_mode == "Creation date":
+        notes.sort(key=lambda n: n.created, reverse=True)
+    elif sort_mode == "Title":
+        notes.sort(key=lambda n: n.title)
+
     if not notes:
         st.info("You don't have any notes yet. Click the buttons above to create one.")
         st.stop()
@@ -55,14 +83,30 @@ with view_notes_tab:
             with st.container(border=True):
                 with st.container(height=100, border=False):
                     st.markdown(
-                        f"<b style='white-space: nowrap; overflow: scroll; height: 50px;'>{note.title}</b>",
+                        f"<b style='white-space: nowrap; overflow: scroll; height: 40px;'>{note.title}</b>",
                         unsafe_allow_html=True,
                     )
                     st.markdown(
-                        f"<div style='white-space: nowrap; overflow: scroll; height: auto; display: flex; gap: 10px'>{tag_spans}</div>",
+                        f"<div style='white-space: nowrap; overflow: scroll; height: auto; display: flex; gap: 10px; height: 30px;'>{tag_spans}</div>",
                         unsafe_allow_html=True,
                     )
-                    # st.markdown(tag_spans, unsafe_allow_html=True)
+                    if search_query and note in content_matches:
+                        content = note.content
+                        m = re.search(search_query, content, re.IGNORECASE)
+                        # appease the type checker
+                        if not m:
+                            continue
+                        start, end = m.span()
+                        left_context = content[max(0, start - 10) : start]
+                        right_context = content[end : min(len(content), end + 10)]
+                        preview = (
+                            f"...{left_context}<u>{m.group()}</u>{right_context}..."
+                        )
+                        st.markdown(
+                            f"<p style='white-space: nowrap; overflow: scroll; height: auto;'>{preview}</p>",
+                            unsafe_allow_html=True,
+                        )
+
                 if st.button(
                     "Open",
                     key=note.title,

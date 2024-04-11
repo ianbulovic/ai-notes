@@ -178,8 +178,6 @@ def load_note(fname, dir=NOTES_DIR) -> Note:
 
 
 def load_notes(
-    search_query: str,
-    sort_mode: str,
     dir=NOTES_DIR,
 ) -> list[Note]:
     """Load all notes from a directory."""
@@ -188,19 +186,5 @@ def load_notes(
         for file in files:
             if file.endswith(".note"):
                 notes.append(load_note(file))
-        break  # ignore subdirs for now
-    notes = [
-        n
-        for n in notes
-        if (
-            search_query.lower() in n.title.lower()
-            or any(search_query.lower() in t.name.lower() for t in n.tags)
-        )
-    ]
-    if sort_mode == "Last opened":
-        notes.sort(key=lambda n: n.last_opened, reverse=True)
-    elif sort_mode == "Creation date":
-        notes.sort(key=lambda n: n.created, reverse=True)
-    elif sort_mode == "Title":
-        notes.sort(key=lambda n: n.title)
+        break  # TODO add folder support
     return notes

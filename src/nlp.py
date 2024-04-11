@@ -1,9 +1,9 @@
-import tomllib
-from typing import Literal
+from typing import Literal, Sequence
 import requests
 from src import CONFIG
 from src.note import Note
 from ollama import Client as OllamaClient, Message, Options
+import numpy as np
 
 
 ollama_url = f"http://{CONFIG['ollama']['host']}:{CONFIG['ollama']['port']}"
@@ -13,7 +13,7 @@ LLM = OllamaClient(ollama_url)
 class OllamaConversation:
     def __init__(
         self,
-        model=CONFIG["ollama"]["frontend"]["model"],
+        model=CONFIG["ollama"]["frontend"]["chat_model"],
         system_message: str | None = None,
     ):
         self.model = model
@@ -51,6 +51,23 @@ def start_conversation_about_note(note: Note) -> OllamaConversation:
         "user", f"Consider the following text: '''{note.content}'''"
     )
     return conversation
+
+
+def get_embedding(text: str) -> Sequence[float]:
+    return LLM.embeddings(
+        model=CONFIG["ollama"]["frontend"]["embed_model"], prompt=text
+    )[
+        "embedding"
+    ]  # type: ignore
+
+
+def update_note_embedding(note: Note):
+    new_embedding = get_embedding(note.content)
+    note.embedding = list(new_embedding)
+
+
+def compare_embeddings(emb_1: Sequence[float], emb_2: Sequence[float]) -> float:
+    return np.dot(emb_1, emb_2) / (np.linalg.norm(emb_1) * np.linalg.norm(emb_2))
 
 
 def transcribe_wav(wav_file: str) -> str:

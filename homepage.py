@@ -3,6 +3,7 @@ import re
 import streamlit as st
 from src.note import Note, load_notes
 from src.tag import load_tags, delete_tag
+from src.nlp import get_embedding, compare_embeddings, update_note_embedding
 
 if "current_note" in st.session_state:
     del st.session_state["current_note"]
@@ -39,27 +40,43 @@ with view_notes_tab:
     with r:
         sort_options = ["Last opened", "Creation date", "Title"]
         if search_query:
+            search_query_embedding = get_embedding(search_query)
             sort_options.insert(0, "Relevance")
         sort_mode = st.selectbox("Sort by", sort_options)
         sort_mode = sort_mode or "Last opened"
 
     notes = load_notes()
+    for note in notes:
+        if not note.embedding:
+            update_note_embedding(note)
+            note.save()
+
     if search_query:
         title_matches = [n for n in notes if search_query.lower() in n.title.lower()]
         tag_matches = [
             n
             for n in notes
-            if any(search_query.lower() in t.name.lower() for t in n.tags)
-            and n not in title_matches
+            if n not in title_matches
+            and any(search_query.lower() in t.name.lower() for t in n.tags)
         ]
         content_matches = [
             n
             for n in notes
-            if search_query.lower() in n.content.lower()
-            and n not in title_matches
-            and n not in tag_matches
+            if n not in title_matches + tag_matches
+            and search_query.lower() in n.content.lower()
         ]
-        notes = title_matches + tag_matches + content_matches
+        semantic_matches = [
+            n
+            for n in notes
+            if n not in title_matches + tag_matches + content_matches
+            if n.embedding
+            and compare_embeddings(search_query_embedding, n.embedding) > 0.55
+        ]
+        semantic_matches = sorted(
+            semantic_matches,
+            key=lambda n: -compare_embeddings(search_query_embedding, n.embedding),
+        )
+        notes = title_matches + tag_matches + content_matches + semantic_matches
 
     if sort_mode == "Last opened":
         notes.sort(key=lambda n: n.last_opened, reverse=True)

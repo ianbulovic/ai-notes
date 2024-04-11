@@ -23,6 +23,7 @@ class SerializedNote(TypedDict):
     audio_file: str
     summary: str
     tag_ids: list[int]
+    embedding: list[float]
 
 
 class Note:
@@ -46,6 +47,7 @@ class Note:
         self._audio_file: str | None = audio_file
         self._summary: str = ""
         self._tags: set[Tag] = set()
+        self._embedding: list[float] = []
 
     @property
     def id(self):
@@ -102,6 +104,14 @@ class Note:
     def tags(self):
         return self._tags
 
+    @property
+    def embedding(self):
+        return self._embedding
+
+    @embedding.setter
+    def embedding(self, value: list[float]):
+        self._embedding = value
+
     def add_tag(self, tag: Tag):
         if tag not in self._tags:
             self._tags.add(tag)
@@ -126,6 +136,7 @@ class Note:
             "audio_file": self._audio_file or "",
             "summary": self._summary,
             "tag_ids": [tag.id for tag in self._tags],
+            "embedding": self._embedding,
         }
 
     def load_from_serialized(self, sn: SerializedNote):
@@ -141,6 +152,10 @@ class Note:
         # be careful not to load tags that have been deleted
         tags_or_none = [get_tag_by_id(tag_id) for tag_id in sn["tag_ids"]]
         self._tags = set([tag for tag in tags_or_none if tag is not None])
+        try:
+            self._embedding = sn["embedding"]
+        except KeyError:
+            self._embedding = []
 
     def save(self):
         """
@@ -170,7 +185,7 @@ def load_note(fname, dir=NOTES_DIR) -> Note:
     """Load a note from a file."""
     n = Note()
     filepath = os.path.join(dir, fname)
-    with open(filepath) as f:
+    with open(filepath, "r") as f:
         serialized_note = json.loads(f.read())
         n.load_from_serialized(serialized_note)
         n.last_save_location = filepath

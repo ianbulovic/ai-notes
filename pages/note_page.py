@@ -1,7 +1,13 @@
+from turtle import up
 import streamlit as st
 from src.note import Note, ValidationError
 from src.tag import Tag, load_tags
-from src.nlp import summarize_note, start_conversation_about_note, transcribe_wav
+from src.nlp import (
+    summarize_note,
+    start_conversation_about_note,
+    transcribe_wav,
+    update_note_embedding,
+)
 from src.utils import generate_random_hex_color, smart_datetime_string
 from autosize_textarea import autosize_textarea
 
@@ -57,7 +63,11 @@ if note.audio_file:
 raw, markdown = st.tabs(tabs=["Raw", "Markdown"])
 
 with raw:
-    note.content = autosize_textarea(value=note.content, key=f"note-content")
+    new_content = autosize_textarea(value=note.content, key=f"note-content")
+    if new_content != note.content:
+        note.content = new_content
+        update_note_embedding(note)
+
 
 with markdown:
     st.markdown(note.content, unsafe_allow_html=True)

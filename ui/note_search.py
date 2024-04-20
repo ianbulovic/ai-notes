@@ -6,20 +6,33 @@ import streamlit as st
 
 from src.nlp import compare_embeddings, get_embedding, update_note_embedding
 from src.note import Note, load_notes
+from src.tag import Tag, load_tags
 
 
-def search_controls() -> tuple[str, str]:
-    search_col, sort_col = st.columns([3, 1])
+def search_controls() -> tuple[str, str, list[Tag] | None]:
+    search_col, filter_col, sort_col = st.columns([2, 1, 1])
     with search_col:
-        search_query = st.text_input("Search by title or tag", key="note-search")
+        search_query = st.text_input(
+            "Search by title, tag, or content", key="note-search"
+        )
         search_query = search_query.strip()
+    with filter_col:
+        tags = load_tags()
+        tag_filters = st.multiselect(
+            "Filter by tags",
+            options=tags,
+            format_func=lambda t: t.name,
+            key="tag-filters",
+        )
+        if not tag_filters:
+            tag_filters = None
     with sort_col:
         sort_options = ["Last opened", "Creation date", "Title"]
         if search_query:
             sort_options.insert(0, "Relevance")
         sort_mode = st.selectbox("Sort by", sort_options)
         sort_mode = sort_mode or "Last opened"
-    return search_query, sort_mode
+    return search_query, sort_mode, tag_filters
 
 
 @dataclass
@@ -72,9 +85,13 @@ def get_search_results(
     notes: list[Note],
     search_query: str,
     sort_mode: str,
+    tag_filters: list[Tag] | None,
     semantic_similarity_threshold: float = 0.55,
 ) -> list[SearchResult]:
     search_query_embedding = get_embedding(search_query)
+
+    if tag_filters:
+        notes = [note for note in notes if all(t in note.tags for t in tag_filters)]
 
     title_matches: list[SearchResult] = []
     tag_matches: list[SearchResult] = []
@@ -138,15 +155,15 @@ def note_search():
                 update_note_embedding(note)
                 note.save()
 
-        search_query, sort_mode = search_controls()
-        results = get_search_results(notes, search_query, sort_mode)
+        search_query, sort_mode, tag_filters = search_controls()
+        results = get_search_results(notes, search_query, sort_mode, tag_filters)
 
         if search_query:
             st.write(
                 f"Found {len(results)} {'note' if len(results) == 1 else 'notes'}."
             )
-
-        notes_columns = st.columns(3)
+        n_cols = 4
+        notes_columns = st.columns(n_cols)
         for i, result in enumerate(results):
-            with notes_columns[i % 3]:
+            with notes_columns[i % n_cols]:
                 result.as_card()

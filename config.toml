@@ -15,7 +15,7 @@ host = "localhost"
 port = 8082
 
 [ollama.frontend]
-chat_model = "mistral:v0.2"
+chat_model = "llama3:instruct"
 embed_model = "mxbai-embed-large"
 
 [ollama.backend]

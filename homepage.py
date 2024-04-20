@@ -13,13 +13,38 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-l, r = st.columns(2)
-with l:
+st.markdown(
+    """
+    <style>
+    .element-container:has(style){
+        display: none;
+    }
+    #button-after {
+        display: none;
+    }
+    .element-container:has(#button-after) {
+        display: none;
+    }
+    .element-container:has(#button-after) + div button div p {
+        font-size: 1.5em !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+_, note_creation_area, _ = st.columns([1, 2, 1])
+with note_creation_area:
+    with st.container(border=True):
+        new_note_col, voice_note_col = st.columns(2)
+with new_note_col:
+    st.markdown('<span id="button-after"></span>', unsafe_allow_html=True)
     if st.button("New Note :memo:", type="primary", use_container_width=True):
         note = Note()
         st.session_state["current_note"] = note
         st.switch_page("pages/note_page.py")
-with r:
+with voice_note_col:
+    st.markdown('<span id="button-after"></span>', unsafe_allow_html=True)
     if st.button(
         "New Voice Note :studio_microphone:", type="primary", use_container_width=True
     ):

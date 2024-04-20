@@ -1,9 +1,8 @@
 from datetime import datetime
 import json
 from typing import TypedDict
-from src.utils import generate_random_hex_color
 
-from src import TAGS_FILE
+from . import TAGS_FILE
 
 
 class SerializedTag(TypedDict):

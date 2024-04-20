@@ -1,9 +1,10 @@
-from typing import Literal, Sequence
-import requests
-from src import CONFIG
-from src.note import Note
-from ollama import Client as OllamaClient, Message, Options
 import numpy as np
+from ollama import Client as OllamaClient, Message, Options
+import requests
+from typing import Literal, Sequence
+
+from . import CONFIG
+from .note import Note
 
 
 ollama_url = f"http://{CONFIG['ollama']['host']}:{CONFIG['ollama']['port']}"
@@ -38,7 +39,7 @@ def summarize_note(note: Note) -> str:
     )
     conversation.add_message(
         "user",
-        f"Please summarize the following text (enclosed in triple quotes) in a sentence or two: '''{note.content}'''",
+        f"Please summarize the following text (enclosed in triple quotes) in a sentence or two. Don't say 'here is the summary' or anything like that, just respond with the summary itself. Here is the text: '''{note.content}'''",
     )
     return conversation.get_response()
 

@@ -1,10 +1,11 @@
 from datetime import datetime
 import json
-from typing import TypedDict
 import os
-from src.tag import Tag, get_tag_by_id
-from src.utils import note_exists, is_valid_filename, get_default_note_title
-from src import NOTES_DIR
+from typing import TypedDict
+
+from . import NOTES_DIR
+from .tag import Tag, get_tag_by_id
+from .utils import note_exists, is_valid_filename, get_default_note_title
 
 
 class ValidationError(Exception):
@@ -52,6 +53,12 @@ class Note:
     @property
     def id(self):
         return self._id
+
+    def __eq__(self, other):
+        return self.id == other.id
+
+    def __hash__(self):
+        return self.id
 
     @property
     def title(self):

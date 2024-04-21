@@ -88,7 +88,8 @@ def get_search_results(
     tag_filters: list[Tag] | None,
     semantic_similarity_threshold: float = 0.55,
 ) -> list[SearchResult]:
-    search_query_embedding = get_embedding(search_query)
+    if search_query:
+        search_query_embedding = get_embedding(search_query)
 
     if tag_filters:
         notes = [note for note in notes if all(t in note.tags for t in tag_filters)]

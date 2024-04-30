@@ -1,5 +1,6 @@
 [settings]
 debug = false
+regenerate_embeddings = false
 
 [api]
 host = "localhost"

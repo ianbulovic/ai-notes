@@ -1,0 +1,3 @@
+# AI Notes - Frontend
+
+Coming soon...

@@ -1,6 +1,5 @@
 import tempfile
 import chromadb
-import io
 from ollama import Client as _OllamaClient
 import os
 import requests
@@ -26,9 +25,12 @@ class ChromadbClient:
     def __init__(self, config):
         self.host = config["host"]
         self.port = config["port"]
-        self.client = chromadb.HttpClient(host=self.host, port=self.port)
+        self.client = chromadb.HttpClient(
+            host=self.host,
+            port=self.port,
+        )
         self.collection = self.client.create_collection(
-            name="notes", get_or_create=True
+            name="notes", get_or_create=True, embedding_function=None
         )
 
     def add(self, ids: list[str], docs: list[str], embeddings: list[Sequence[float]]):
@@ -54,7 +56,7 @@ class ChromadbClient:
         return list(zip(ids, distances))
 
     def get(self, id: str) -> Sequence[float] | None:
-        hit = self.collection.get(id)["embeddings"]
+        hit = self.collection.get(id, include=["embeddings"])["embeddings"]
         return hit[0] if hit else None
 
     def alive(self):

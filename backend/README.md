@@ -1,3 +1,0 @@
-# AI Notes - Backend
-
-Coming soon...

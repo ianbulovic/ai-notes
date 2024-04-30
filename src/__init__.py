@@ -1,16 +1,68 @@
-import json
-import os
-import tomllib
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 
-with open("config.toml", "rb") as f:
-    CONFIG = tomllib.load(f)
+from .backends import ChromadbClient, OllamaClient, WhisperClient, BackendManager
 
-NOTES_DIR = "debug-notes" if CONFIG["settings"]["debug"] else "notes"
-TAGS_FILE = os.path.join(NOTES_DIR, "tags.json")
 
-if not os.path.exists(NOTES_DIR):
-    os.makedirs(NOTES_DIR)
+class Server:
+    def __init__(self, config):
+        self.config = config
+        self.app = Flask(__name__)
+        self.app.config["SQLALCHEMY_DATABASE_URI"] = config["database"]["uri"]
+        self.app.config["FLASK_ADMIN_SWATCH"] = "cerulean"
+        self.app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+        self.app.config["SECRET_KEY"] = "super secret key"
+        CORS(self.app)
+        self.db = SQLAlchemy(self.app)
 
-if not os.path.exists(TAGS_FILE):
-    with open(TAGS_FILE, "w") as f:
-        json.dump([], f)
+    def run(self):
+        with BackendManager(self.config):
+            self.chromadb_client = ChromadbClient(self.config["chromadb"])
+            self.ollama_client = OllamaClient(self.config["ollama"])
+            self.whisper_client = WhisperClient(self.config["whisper"])
+
+            from . import routes
+
+            with self.app.app_context():
+                self.db.create_all()
+                self.ensure_embedded()
+
+            self.app.run(
+                host=self.config["api"]["host"], port=self.config["api"]["port"]
+            )
+
+    def ensure_embedded(self):
+        from .db_model import Note
+
+        embed_everything = self.config["settings"]["debug"]
+        if embed_everything:
+            print("Clearing all embeddings")
+            self.chromadb_client.clear()
+
+        ids = []
+        docs = []
+        embeddings = []
+        for note in Note.query.all():
+            if embed_everything or self.chromadb_client.get(str(note.id)) is None:
+                ids.append(str(note.id))
+                docs.append(f"{note.title}\n{note.content}")
+                embeddings.append(self.ollama_client.embed(docs[-1]))
+                print(f"Embedded note {note.id} ({note.title}) {embeddings[-1][:5]}...")
+        self.chromadb_client.add(ids, docs, embeddings)
+
+
+_server: Server | None = None
+
+
+def start_server(config):
+    global _server
+    _server = Server(config)
+    _server.run()
+
+
+def get_server():
+    global _server
+    if _server is None:
+        raise Exception("Cannot access server before it has been started.")
+    return _server

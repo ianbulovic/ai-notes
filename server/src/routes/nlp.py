@@ -1,3 +1,4 @@
+import os
 from flask import request
 
 from .. import get_server
@@ -49,9 +50,9 @@ def update_note_embedding(note_id):
 @app.route("/api/transcribe/<int:media_id>", methods=["POST"])
 def transcribe(media_id: int):
     media = Media.query.get_or_404(media_id)
-
+    media_path = os.path.join(os.getcwd(), config["api"]["media_path"], media.path)
     try:
-        text = whisper_client.transcribe(media.path)
+        text = whisper_client.transcribe(media_path)
         return {"text": text}
     except Exception as e:
         return {"error": str(e)}, 500

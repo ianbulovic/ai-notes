@@ -5,6 +5,7 @@ regenerate_embeddings = false
 [api]
 host = "localhost"
 port = 8000
+media_path = "./media"
 
 [database]
 uri = "sqlite:///./test.db"

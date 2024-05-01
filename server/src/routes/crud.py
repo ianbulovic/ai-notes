@@ -1,5 +1,5 @@
 import datetime
-from flask import request
+from flask import request, send_from_directory
 import os
 from sqlalchemy import func
 
@@ -8,6 +8,7 @@ from ..db_model import Note, Tag, Media
 
 app = get_server().app
 db = get_server().db
+config = get_server().config
 ollama_client = get_server().ollama_client
 chromadb_client = get_server().chromadb_client
 
@@ -205,6 +206,13 @@ def get_tag_notes(tag_id):
 # Routes for media
 
 
+@app.route("/api/media/<int:media_id>", methods=["GET"])
+def get_media(media_id):
+    media = Media.query.get_or_404(media_id)
+    media_dir = os.path.join(os.getcwd(), config["api"]["media_path"])
+    return send_from_directory(media_dir, media.path)
+
+
 @app.route("/api/media", methods=["POST"])
 def upload_media():
     if "webm" not in request.files:
@@ -212,11 +220,14 @@ def upload_media():
 
     file_storage = request.files["webm"]
 
+    media_dir = config["api"]["media_path"]
     os.makedirs("media", exist_ok=True)
-    save_path = f"media/{datetime.datetime.now().isoformat()}.webm"
+
+    filename = f"{int(datetime.datetime.now().timestamp() * 1000)}.webm"
+    save_path = os.path.join(os.getcwd(), media_dir, filename)
     file_storage.save(save_path)
 
-    media = Media.new_media(save_path)
+    media = Media.new_media(filename)
 
     db.session.add(media)
     db.session.commit()

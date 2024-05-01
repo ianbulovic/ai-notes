@@ -8,7 +8,7 @@ import NoteEditor from "../components/NoteEditor";
 import NotePreview from "../components/NotePreview";
 import NoteTagList from "../components/NoteTagList";
 
-import { getNoteById } from "../api";
+import { getNoteById, getMediaById } from "../api";
 import { APP_TITLE } from "../constants";
 import ChatArea from "../components/ChatArea";
 
@@ -20,6 +20,17 @@ export async function loader({ params }) {
 const NotePage = () => {
   const { noteOnLoad } = useLoaderData();
   const [note, setNote] = React.useState(noteOnLoad);
+  const [audio, setAudio] = React.useState(null);
+
+  useEffect(() => {
+    if (note.media) {
+      const mediaId = note.media[0];
+      getMediaById(mediaId).then((blob) => {
+        const url = URL.createObjectURL(blob);
+        setAudio({ url });
+      });
+    }
+  }, [note.media]);
 
   useEffect(() => {
     document.title = `${note.title || "Untitled Note"} - ${APP_TITLE}`;
@@ -30,6 +41,20 @@ const NotePage = () => {
       <Header />
       <Stack direction="vertical" gap={3} className="col-md-6 mx-auto p-4">
         <NoteTagList note={note} setNote={setNote} />
+        {audio && (
+          <Stack gap={1}>
+            <em className="text-muted">Recorded audio:</em>
+            <audio
+              controls
+              src={audio.url}
+              className="bg-info rounded-3"
+              style={{
+                width: "100%",
+                display: "block",
+              }}
+            />
+          </Stack>
+        )}
         <Tab.Container defaultActiveKey="edit">
           <Nav variant="tabs">
             <Nav.Item>

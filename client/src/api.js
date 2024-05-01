@@ -143,6 +143,14 @@ export async function addMediaToNote(noteId, mediaId) {
   return response.data;
 }
 
+export async function getMediaById(id) {
+  // request blob
+  const response = await axios.get(`${API_URL}/media/${id}`, {
+    responseType: "blob",
+  });
+  return response.data;
+}
+
 // ----- Transcription API ----- //
 
 export async function transcribeRecording(mediaId) {

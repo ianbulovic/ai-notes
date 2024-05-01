@@ -50,7 +50,7 @@ The client for AI Notes is a React application that provides a simple user inter
 
     ```bash
     cd server
-    conda create -n ai-notes python=3.12
+    conda create -y -n ai-notes python=3.12
     conda activate ai-notes
     ```
 

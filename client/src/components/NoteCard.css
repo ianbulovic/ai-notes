@@ -1,0 +1,12 @@
+.note-card {
+  transform: scale(1);
+}
+
+.note-card:hover {
+  transform: scale(1.05);
+}
+
+/* smooth transition */
+.note-card {
+  transition: transform 0.1s ease-out;
+}

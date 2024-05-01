@@ -23,7 +23,7 @@ const NotePage = () => {
   const [audio, setAudio] = React.useState(null);
 
   useEffect(() => {
-    if (note.media) {
+    if (note.media && note.media.length > 0) {
       const mediaId = note.media[0];
       getMediaById(mediaId).then((blob) => {
         const url = URL.createObjectURL(blob);

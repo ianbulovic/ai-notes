@@ -9,6 +9,7 @@ if __name__ == "__main__":
     # optionally get config path from args
     if len(sys.argv) > 1:
         config_path = sys.argv[1]
+        print(f"Using config file: {config_path}")
 
     with open(config_path, "rb") as f:
         config = tomllib.load(f)

@@ -109,7 +109,7 @@ export default function NoteEditor({ note, setNote }) {
         type="text"
         value={content}
         style={{
-          minHeight: "70%",
+          minHeight: "50%",
           lineHeight: "1.5",
           overflowY: "hidden",
         }}

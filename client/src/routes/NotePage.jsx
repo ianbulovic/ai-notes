@@ -37,9 +37,16 @@ const NotePage = () => {
   }, [note.title]);
 
   return (
-    <div className="min-vh-100">
+    <div>
       <Header />
-      <Stack direction="vertical" gap={3} className="col-md-6 mx-auto p-4">
+      <Stack
+        direction="vertical"
+        gap={3}
+        className="col-md-6 mx-auto p-4"
+        style={{
+          minHeight: "80vh",
+        }}
+      >
         <NoteTagList note={note} setNote={setNote} />
         {audio && (
           <Stack gap={1}>
@@ -55,7 +62,7 @@ const NotePage = () => {
             />
           </Stack>
         )}
-        <Tab.Container defaultActiveKey="edit">
+        <Tab.Container defaultActiveKey="chat">
           <Nav variant="tabs">
             <Nav.Item>
               <Nav.Link eventKey="edit" variant="secondary">
@@ -78,11 +85,11 @@ const NotePage = () => {
               </Nav.Link>
             </Nav.Item>
           </Nav>
-          <Tab.Content className="h-100">
-            <Tab.Pane eventKey="edit" className="h-100">
+          <Tab.Content>
+            <Tab.Pane eventKey="edit">
               <NoteEditor note={note} setNote={setNote} />
             </Tab.Pane>
-            <Tab.Pane eventKey="view" className="h-100">
+            <Tab.Pane eventKey="view">
               <NotePreview note={note} />
             </Tab.Pane>
             <Tab.Pane eventKey="chat">
@@ -92,6 +99,7 @@ const NotePage = () => {
                   position: "relative",
                   right: "30%",
                   width: "160%",
+                  minHeight: "100%",
                 }}
               >
                 <Col>
@@ -109,6 +117,7 @@ const NotePage = () => {
                   position: "relative",
                   right: "30%",
                   width: "160%",
+                  minHeight: "100%",
                 }}
               >
                 <Col>

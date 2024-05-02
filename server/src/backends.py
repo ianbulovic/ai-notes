@@ -284,7 +284,7 @@ class BackendManager:
             cfg = config[name]
 
             if cfg["external"]:
-                self.external.append((backend, cfg["host"], cfg["port"]))
+                self.external.append((backend, cfg["host"], cfg["port"], name))
             else:
                 self.backends.append(backend(cfg))
 
@@ -300,9 +300,9 @@ class BackendManager:
             else:
                 raise Exception(f"Failed to start {backend.name}")
 
-        for backend, host, port in self.external:
+        for backend, host, port, name in self.external:
             if not backend._alive(host, port):
-                raise Exception(f"Failed to connect to {backend.name}")
+                raise Exception(f"Failed to connect to {name}")
 
         return self
 

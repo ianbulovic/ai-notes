@@ -30,7 +30,10 @@ class Note(db.Model):
     @classmethod
     def new_note(cls):
         note = cls()
-        note.id = db.session.query(db.func.max(cls.id)).scalar() + 1
+        if not db.session.query(cls.id).count():
+            note.id = 1
+        else:
+            note.id = db.session.query(db.func.max(cls.id)).scalar() + 1
         default_title = "Untitled Note"
         # if the default title already exists, append a number to it until it's unique
         title = default_title

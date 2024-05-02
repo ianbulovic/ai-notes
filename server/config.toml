@@ -13,16 +13,19 @@ uri = "sqlite:///./test.db"
 [chromadb]
 host = "localhost"
 port = 8001
+external = false
 
 [whisper]
 host = "localhost"
 port = 8002
+external = false
 executable = "whisper.cpp/server"
 model = "whisper.cpp/models/ggml-base.en.bin"
 
 [ollama]
 host = "localhost"
 port = 8003
+external = true
 executable = "/usr/local/bin/ollama"
 chat_model = "llama3"
 embed_model = "mxbai-embed-large"

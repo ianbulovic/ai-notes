@@ -1,3 +1,4 @@
+from abc import ABC
 import tempfile
 import chromadb
 from ollama import Client as _OllamaClient
@@ -17,6 +18,37 @@ __all__ = [
     "WhisperClient",
     "BackendManager",
 ]
+
+
+class Backend(ABC):
+    """Abstract base class for backend services."""
+
+    name: str
+    """The name of the backend service."""
+
+    host: str
+    """The host of the backend service."""
+
+    port: int
+    """The port of the backend service."""
+
+    def start(self) -> None:
+        """Start the backend service."""
+        raise NotImplementedError
+
+    def stop(self) -> None:
+        """Stop the backend service."""
+        raise NotImplementedError
+
+    @classmethod
+    def _alive(cls, host: str, port: int) -> bool:
+        """Check if the backend service is running."""
+        raise NotImplementedError
+
+    def alive(self) -> bool:
+        """Check if the backend service is running."""
+        return self._alive(self.host, self.port)
+
 
 ### ChromaDB ###
 
@@ -67,11 +99,12 @@ class ChromadbClient:
             return False
 
 
-class ChromadbBackend:
+class ChromadbBackend(Backend):
+
     def __init__(self, config):
+        self.name = "chromadb"
         self.host = config["host"]
         self.port = config["port"]
-        self.name = "chromadb"
 
     def start(self):
         self.process = subprocess.Popen(
@@ -90,9 +123,10 @@ class ChromadbBackend:
     def stop(self):
         self.process.terminate()
 
-    def alive(self):
+    @classmethod
+    def _alive(cls, host: str, port: int):
         try:
-            requests.get(f"http://{self.host}:{self.port}/api/v1").raise_for_status()
+            requests.get(f"http://{host}:{port}/api/v1").raise_for_status()
             return True
         except Exception:
             return False
@@ -124,12 +158,12 @@ class OllamaClient:
             return False
 
 
-class OllamaBackend:
+class OllamaBackend(Backend):
     def __init__(self, config):
+        self.name = "ollama"
         self.host = config["host"]
         self.port = config["port"]
         self.executable = config["executable"]
-        self.name = "ollama"
 
     def start(self):
         self.process = subprocess.Popen(
@@ -145,9 +179,10 @@ class OllamaBackend:
     def stop(self):
         self.process.terminate()
 
-    def alive(self):
+    @classmethod
+    def _alive(cls, host: str, port: int):
         try:
-            requests.get(f"http://{self.host}:{self.port}").raise_for_status()
+            requests.get(f"http://{host}:{port}").raise_for_status()
             return True
         except Exception:
             return False
@@ -199,13 +234,13 @@ class WhisperClient:
         return True
 
 
-class WhisperBackend:
+class WhisperBackend(Backend):
     def __init__(self, config):
+        self.name = "whisper"
         self.host = config["host"]
         self.port = config["port"]
         self.model = config["model"]
         self.executable = config["executable"]
-        self.name = "whisper"
 
     def start(self):
         self.process = subprocess.Popen(
@@ -224,9 +259,10 @@ class WhisperBackend:
     def stop(self):
         self.process.terminate()
 
-    def alive(self):
+    @classmethod
+    def _alive(cls, host: str, port: int):
         try:
-            requests.get(f"http://{self.host}:{self.port}").raise_for_status()
+            requests.get(f"http://{host}:{port}").raise_for_status()
             return True
         except Exception:
             return False
@@ -238,25 +274,39 @@ class WhisperBackend:
 class BackendManager:
 
     def __init__(self, config):
-        self.chromadb = ChromadbBackend(config["chromadb"])
-        self.ollama = OllamaBackend(config["ollama"])
-        self.whisper = WhisperBackend(config["whisper"])
+        self.backends: list[Backend] = []
+        self.external = []
+        for name, backend in [
+            ("chromadb", ChromadbBackend),
+            ("ollama", OllamaBackend),
+            ("whisper", WhisperBackend),
+        ]:
+            cfg = config[name]
+
+            if cfg["external"]:
+                self.external.append((backend, cfg["host"], cfg["port"]))
+            else:
+                self.backends.append(backend(cfg))
 
     def __enter__(self):
-        self.chromadb.start()
-        self.ollama.start()
-        self.whisper.start()
-        for backend in [self.chromadb, self.ollama, self.whisper]:
+        for backend in self.backends:
+            backend.start()
+
+        for backend in self.backends:
             for _ in range(50):
                 if backend.alive():
                     break
                 time.sleep(0.2)
             else:
                 raise Exception(f"Failed to start {backend.name}")
+
+        for backend, host, port in self.external:
+            if not backend._alive(host, port):
+                raise Exception(f"Failed to connect to {backend.name}")
+
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.chromadb.stop()
-        self.ollama.stop()
-        self.whisper.stop()
+        for backend in self.backends:
+            backend.stop()
         return False

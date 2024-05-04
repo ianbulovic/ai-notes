@@ -23,28 +23,50 @@ def get_notes():
     results_per_page = int(request.args.get("n", 10))
     page = int(request.args.get("page", 1))
 
-    # add a column for search score
     notes = Note.query
-
-    if search_query:
-
-        # Filter by search query
-        notes = notes.filter(
-            Note.title.ilike(f"%{search_query}%")
-            | Note.content.ilike(f"%{search_query}%")
-        )
-
-        # TODO this is too slow, need to optimize
-        # query the embeddings
-        # query_embedding = ollama_client.embed(search_query)
-        # matches = chromadb_client.query(query_embedding, n_results=1)
-        # note_ids = [nid for nid, dist in matches]
-        # notes = notes.union(Note.query.filter(Note.id.in_(note_ids)))
 
     if tags:
         tag_ids = [int(tag_id) for tag_id in tags.split(",")]
         for tag_id in tag_ids:
             notes = notes.filter(Note.tags.any(Tag.id == tag_id))
+
+    if search_query:
+
+        # Filter by search query
+        # notes = notes.filter(
+        #     Note.title.ilike(f"X%{search_query}%")
+        #     | Note.content.ilike(f"X%{search_query}%")
+        # )
+
+        title_matches = Note.query.filter(Note.title.ilike(f"%{search_query}%"))
+        title_score = func.char_length(Note.title) - func.char_length(
+            func.replace(func.lower(Note.title), func.lower(search_query), "")
+        )
+
+        content_matches = Note.query.filter(Note.content.ilike(f"%{search_query}%"))
+        content_score = func.char_length(Note.content) - func.char_length(
+            func.replace(func.lower(Note.content), func.lower(search_query), "")
+        )
+        notes = title_matches.union(content_matches).distinct()
+
+        # TODO this is too slow and too inaccurate
+        # query the embeddings
+        # query_embedding = ollama_client.embed(search_query)
+        # ids, distances = chromadb_client.query(query_embedding, n_results=20)
+        # distance_map = dict(zip(ids, distances))
+        # if len(ids) > 0:
+        #     semantic_matches = Note.query.filter(Note.id.in_(ids))
+        #     # calculate semantic score using distance map, notes not in distance map = 0 score
+        #     semantic_score = case(distance_map, value=Note.id, else_=1000)
+        #     notes = notes.union(semantic_matches).distinct()
+        #     if sort_mode == "relevance":
+        #         notes = notes.order_by(
+        #             title_score.desc(), content_score.desc(), semantic_score.asc()
+        #         )
+        # elif sort_mode == "relevance":
+        #     notes = notes.order_by(title_score.desc(), content_score.desc())
+        if sort_mode == "relevance":
+            notes = notes.order_by(title_score.desc(), content_score.desc())
 
     if sort_mode == "created":
         notes = notes.order_by(Note.created_at.desc())
@@ -55,15 +77,6 @@ def get_notes():
     elif sort_mode == "title":
         # ignore case when sorting by title
         notes = notes.order_by(func.lower(Note.title))
-    elif search_query and sort_mode == "relevance":
-        title_score = func.char_length(Note.title) - func.char_length(
-            func.replace(func.lower(Note.title), func.lower(search_query), "")
-        )
-        content_score = func.char_length(Note.content) - func.char_length(
-            func.replace(func.lower(Note.content), func.lower(search_query), "")
-        )
-
-        notes = notes.order_by(title_score.desc(), content_score.desc())
 
     pagination = notes.paginate(page=page, per_page=results_per_page, count=True)
     notes = pagination.items

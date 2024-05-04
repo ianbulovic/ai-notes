@@ -28,4 +28,4 @@ port = 8003
 external = false
 executable = "/usr/local/bin/ollama"
 chat_model = "llama3"
-embed_model = "mxbai-embed-large"
+embed_model = "all-minilm"

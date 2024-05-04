@@ -61,8 +61,15 @@ class ChromadbClient:
             host=self.host,
             port=self.port,
         )
+
+        self.collection_name = "note-content"
+        self.embedding_function = None
+        self.metadata = {"hnsw:space": "l2"}
         self.collection = self.client.create_collection(
-            name="notes", get_or_create=True, embedding_function=None
+            name=self.collection_name,
+            get_or_create=True,
+            embedding_function=self.embedding_function,
+            metadata=self.metadata,
         )
 
     def add(self, ids: list[str], docs: list[str], embeddings: list[Sequence[float]]):
@@ -72,20 +79,33 @@ class ChromadbClient:
         self.collection.delete(ids=ids)
 
     def clear(self):
-        self.client.delete_collection("notes")
-        self.collection = self.client.create_collection("notes")
+        self.client.delete_collection(self.collection_name)
+        self.collection = self.client.create_collection(
+            name=self.collection_name,
+            embedding_function=self.embedding_function,
+            metadata=self.metadata,
+        )
 
     def query(
-        self, query_embedding: Sequence[float], n_results: int = 10
-    ) -> list[tuple[int, float]]:
+        self,
+        query_embedding: Sequence[float],
+        n_results: int = 10,
+        max_distance: float = 10,
+    ) -> tuple[list[int], list[float]]:
         result = self.collection.query(
             query_embeddings=[query_embedding],
             n_results=n_results,
             include=["distances"],
         )
-        ids: list[int] = [int(id) for id in result["ids"][0]]
-        distances: list[float] = result["distances"][0]  # type: ignore
-        return list(zip(ids, distances))
+        ids: list[int] = []
+        distances: list[float] = []
+        for id, distance in zip(result["ids"][0], result["distances"][0]):  # type: ignore
+            # if distance > max_distance:
+            #     break
+            print(f"ID: {id}, Distance: {distance}")
+            ids.append(int(id))
+            distances.append(distance)
+        return ids, distances
 
     def get(self, id: str) -> Sequence[float] | None:
         hit = self.collection.get(id, include=["embeddings"])["embeddings"]

@@ -29,7 +29,9 @@ class Server:
                 self.ensure_embedded()
 
             self.app.run(
-                host=self.config["api"]["host"], port=self.config["api"]["port"]
+                host=self.config["api"]["host"],
+                port=self.config["api"]["port"],
+                debug=self.config["settings"]["debug"],
             )
 
     def ensure_embedded(self):
@@ -46,9 +48,10 @@ class Server:
         for note in Note.query.all():
             if regenerate_embeddings or self.chromadb_client.get(str(note.id)) is None:
                 ids.append(str(note.id))
-                docs.append(f"{note.title}\n{note.content}")
-                embeddings.append(self.ollama_client.embed(docs[-1]))
-                print(f"Embedded note {note.id} ({note.title}) {embeddings[-1][:5]}...")
+                doc = f"{note.title}\n{note.content}"
+                docs.append(doc)
+                embeddings.append(self.ollama_client.embed(doc))
+                print(f"Embedded note {note.id} ({note.title})")
         if ids:
             self.chromadb_client.add(ids, docs, embeddings)
 

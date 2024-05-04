@@ -1,7 +1,7 @@
 import datetime
 from flask import request, send_from_directory
 import os
-from sqlalchemy import func
+from sqlalchemy import case, func
 
 from .. import get_server
 from ..db_model import Note, Tag, Media
@@ -31,16 +31,15 @@ def get_notes():
             notes = notes.filter(Note.tags.any(Tag.id == tag_id))
 
     if search_query:
-
-        # Filter by search query
-        # notes = notes.filter(
-        #     Note.title.ilike(f"X%{search_query}%")
-        #     | Note.content.ilike(f"X%{search_query}%")
-        # )
-
         title_matches = Note.query.filter(Note.title.ilike(f"%{search_query}%"))
-        title_score = func.char_length(Note.title) - func.char_length(
-            func.replace(func.lower(Note.title), func.lower(search_query), "")
+        title_score = case(
+            (func.lower(Note.title).startswith(func.lower(search_query)), 1000),
+            else_=(
+                func.char_length(Note.title)
+                - func.char_length(
+                    func.replace(func.lower(Note.title), func.lower(search_query), "")
+                )
+            ),
         )
 
         content_matches = Note.query.filter(Note.content.ilike(f"%{search_query}%"))

@@ -90,7 +90,7 @@ class ChromadbClient:
         self,
         query_embedding: Sequence[float],
         n_results: int = 10,
-        max_distance: float = 10,
+        max_distance: float | None = None,
     ) -> tuple[list[int], list[float]]:
         result = self.collection.query(
             query_embeddings=[query_embedding],
@@ -100,7 +100,7 @@ class ChromadbClient:
         ids: list[int] = []
         distances: list[float] = []
         for id, distance in zip(result["ids"][0], result["distances"][0]):  # type: ignore
-            if distance > max_distance:
+            if max_distance is not None and distance > max_distance:
                 break
             print(f"ID: {id}, Distance: {distance}")
             ids.append(int(id))
@@ -164,7 +164,7 @@ class OllamaClient:
         self.client.pull(self.chat_model)
         self.client.pull(self.embed_model)
 
-    def chat(self, messages: list[Mapping[str, Any]]) -> Mapping[str, Any]:
+    def chat(self, messages: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
         return self.client.chat(self.chat_model, messages)  # type: ignore
 
     def embed(self, text: str) -> Sequence[float]:

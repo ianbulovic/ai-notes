@@ -62,7 +62,7 @@ const NotePage = () => {
             />
           </Stack>
         )}
-        <Tab.Container defaultActiveKey="chat">
+        <Tab.Container defaultActiveKey="edit">
           <Nav variant="tabs">
             <Nav.Item>
               <Nav.Link eventKey="edit" variant="secondary">

@@ -4,7 +4,7 @@ import { openNoteById } from "../api";
 import { invertColor } from "../utils";
 import NoteDeleteButton from "./NoteDeleteButton";
 
-export default function NoteCard({ note, searchQuery, onDelete }) {
+export default function NoteCard({ note, searchQuery, onDelete, showDelete }) {
   var displayTitle = <div>{note.title}</div>;
   var displayContent = (
     <div>
@@ -68,9 +68,11 @@ export default function NoteCard({ note, searchQuery, onDelete }) {
       <div className="card note-card">
         <div className="card-body">
           <h5 className="card-title">{displayTitle}</h5>
-          <span className="position-absolute top-0 end-0">
-            <NoteDeleteButton note={note} onDelete={onDelete} />
-          </span>
+          {showDelete && (
+            <span className="position-absolute top-0 end-0">
+              <NoteDeleteButton note={note} onDelete={onDelete} />
+            </span>
+          )}
           <span className="d-block mb-2">
             {note.tags.map((tag, index) => (
               <span
@@ -85,7 +87,7 @@ export default function NoteCard({ note, searchQuery, onDelete }) {
               </span>
             ))}
           </span>
-          <p className="card-text">{displayContent}</p>
+          <div className="card-text">{displayContent}</div>
         </div>
       </div>
     </LinkContainer>

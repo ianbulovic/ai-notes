@@ -7,7 +7,6 @@ export default function NoteEditor({ note, setNote }) {
   const titleRef = useRef();
   const textareaRef = useRef();
 
-  // const [note, setNote] = useState(noteOnLoad);
   const [title, setTitle] = useState(note.title);
   const [content, setContent] = useState(note.content);
   const [dirty, setDirty] = useState(false);
@@ -17,14 +16,9 @@ export default function NoteEditor({ note, setNote }) {
 
   const resizeTextarea = () => {
     const textarea = textareaRef.current;
-    const clone = textarea.cloneNode(true);
-    clone.style.height = "auto";
-    clone.style.position = "absolute";
-    clone.style.visibility = "hidden";
-    document.body.appendChild(clone);
-    const height = clone.scrollHeight;
-    document.body.removeChild(clone);
-    textarea.style.height = `${height}px`;
+    textarea.style.height = "auto";
+    const height = textarea.scrollHeight;
+    textarea.style.height = `${Math.max(height, 300)}px`;
   };
   useEffect(resizeTextarea, []);
 
@@ -91,7 +85,7 @@ export default function NoteEditor({ note, setNote }) {
   // }, [content, embeddingDirty, lastEmbeddingSaved, note.id, setNote]);
 
   return (
-    <Stack direction="vertical" gap={3} className="mx-auto">
+    <Stack direction="vertical" gap={3} className="mx-auto pb-5">
       <small className="text-muted">
         <em>{dirty ? "Saving..." : "Changes saved."}</em>
       </small>

@@ -31,7 +31,7 @@ export default function SearchControls({
   }, []);
 
   return (
-    <div className="col-md-6 mx-auto p-4">
+    <div className="mx-auto pb-4">
       <InputGroup className="mb-3 w-100">
         <FloatingLabel
           controlId="search"

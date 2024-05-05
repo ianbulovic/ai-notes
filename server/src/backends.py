@@ -165,7 +165,7 @@ class OllamaClient:
         self.client.pull(self.embed_model)
 
     def chat(self, messages: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
-        return self.client.chat(self.chat_model, messages)  # type: ignore
+        return self.client.chat(self.chat_model, messages, options={"num_predict": 1024})  # type: ignore
 
     def embed(self, text: str) -> Sequence[float]:
         return self.client.embeddings(self.embed_model, prompt=text)["embedding"]  # type: ignore

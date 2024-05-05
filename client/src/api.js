@@ -112,10 +112,15 @@ export async function removeTagFromNote(noteId, tagId) {
   return response.data;
 }
 
-// ----- Chat and RAG API ----- //
+// ----- Chat, Summary, and RAG API ----- //
 
 export async function chat(messages) {
   const response = await axios.post(`${API_URL}/chat`, { messages });
+  return response.data;
+}
+
+export async function summarize(text) {
+  const response = await axios.post(`${API_URL}/summarize`, { text });
   return response.data;
 }
 

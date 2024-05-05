@@ -12,7 +12,7 @@ ollama_client = get_server().ollama_client
 whisper_client = get_server().whisper_client
 config = get_server().config
 
-# Routes for llm
+# Chat with LLM
 
 
 @app.route("/api/chat", methods=["POST"])
@@ -25,7 +25,36 @@ def chat():
     return response["message"]
 
 
-# Routes for note embedding
+# Summarization
+
+
+@app.route("/api/summarize", methods=["POST"])
+def summarize():
+    data = request.json
+    if data is None or "text" not in data:
+        return {"error": "Invalid request"}, 400
+    text = data["text"]
+    messages = [
+        {
+            "role": "system",
+            "content": """You are an AI assistant that summarizes notes. 
+            You will be given a note to summarize. 
+            Please provide a summary of the note. 
+            Do not say anything else in your response, or the user will not be able to parse it.""",
+        },
+        {
+            "role": "user",
+            "content": f"""Here is the note to summarize: "{text}" 
+
+            
+            Please provide a summary of the note. Do not say anything else in your response.""",
+        },
+    ]
+    summary = ollama_client.chat(messages)["message"]["content"]
+    return {"summary": summary}
+
+
+# Note embedding
 
 
 @app.route("/api/embed/<int:note_id>", methods=["POST"])
@@ -37,7 +66,7 @@ def update_note_embedding(note_id):
     return note.to_dict()
 
 
-# Routes for RAG
+# RAG
 
 
 @app.route("/api/rag", methods=["POST"])
@@ -91,7 +120,7 @@ def rag():
     return {"notes": [note.to_dict() for note in notes]}
 
 
-# Routes for transcription
+# Transcription
 
 
 @app.route("/api/transcribe/<int:media_id>", methods=["POST"])

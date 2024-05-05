@@ -11,6 +11,7 @@ import NoteTagList from "../components/NoteTagList";
 import { getNoteById, getMediaById } from "../api";
 import { APP_TITLE } from "../constants";
 import ChatArea from "../components/ChatArea";
+import SummarizeArea from "../components/SummarizeArea";
 
 export async function loader({ params }) {
   const noteOnLoad = await getNoteById(params.id);
@@ -124,7 +125,7 @@ const NotePage = () => {
                   <NotePreview note={note} />
                 </Col>
                 <Col>
-                  <em className="text-muted">Not yet implemented.</em>
+                  <SummarizeArea note={note} />
                 </Col>
               </Row>
             </Tab.Pane>

@@ -38,6 +38,8 @@ export default function RagArea({ note }) {
     getNotesByQuery(query, 5).then(({ notes }) => {
       setStatus("Searching notes for information...");
       if (notes.length === 0) {
+        setQuery("");
+        setStatus("");
         setResponse({
           role: "assistant",
           content: "I couldn't find any notes that might help with that.",

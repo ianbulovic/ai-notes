@@ -6,6 +6,8 @@ from .backends import ChromadbClient, OllamaClient, WhisperClient, BackendManage
 
 
 class Server:
+    """The main server class. This class handles configuration and running of the server and the backends."""
+
     def __init__(self, config):
         self.config = config
         self.app = Flask(__name__)
@@ -17,17 +19,21 @@ class Server:
         self.db = SQLAlchemy(self.app)
 
     def run(self):
+        """Spin up the backends and start the server."""
         with BackendManager(self.config):
             self.chromadb_client = ChromadbClient(self.config["chromadb"])
             self.ollama_client = OllamaClient(self.config["ollama"])
             self.whisper_client = WhisperClient(self.config["whisper"])
 
+            # Expose the routes for the api
             from . import routes
 
+            # Make sure the database is created and all notes are embedded
             with self.app.app_context():
                 self.db.create_all()
                 self.ensure_embedded()
 
+            # Start the server
             self.app.run(
                 host=self.config["api"]["host"],
                 port=self.config["api"]["port"],
@@ -35,6 +41,9 @@ class Server:
             )
 
     def ensure_embedded(self):
+        """Ensure that all notes are embedded in the ChromaDB database."""
+
+        # Import Note here to avoid circular import with db_model
         from .db_model import Note
 
         regenerate_embeddings = self.config["settings"]["regenerate_embeddings"]
@@ -57,15 +66,18 @@ class Server:
 
 
 _server: Server | None = None
+"""The server instance."""
 
 
 def start_server(config):
+    """Start the server with the given configuration."""
     global _server
     _server = Server(config)
     _server.run()
 
 
 def get_server():
+    """Get the server instance."""
     global _server
     if _server is None:
         raise Exception("Cannot access server before it has been started.")

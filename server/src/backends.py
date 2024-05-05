@@ -100,8 +100,8 @@ class ChromadbClient:
         ids: list[int] = []
         distances: list[float] = []
         for id, distance in zip(result["ids"][0], result["distances"][0]):  # type: ignore
-            # if distance > max_distance:
-            #     break
+            if distance > max_distance:
+                break
             print(f"ID: {id}, Distance: {distance}")
             ids.append(int(id))
             distances.append(distance)

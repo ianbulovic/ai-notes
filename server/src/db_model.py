@@ -1,4 +1,3 @@
-from typing import Sequence
 from . import get_server
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView

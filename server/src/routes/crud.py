@@ -64,6 +64,7 @@ def get_notes():
         #         )
         # elif sort_mode == "relevance":
         #     notes = notes.order_by(title_score.desc(), content_score.desc())
+
         if sort_mode == "relevance":
             notes = notes.order_by(title_score.desc(), content_score.desc())
 

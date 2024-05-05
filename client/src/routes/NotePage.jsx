@@ -49,7 +49,7 @@ const NotePage = () => {
       >
         <NoteTagList note={note} setNote={setNote} />
         {audio && (
-          <Stack gap={1}>
+          <Stack gap={1} style={{ flex: 0 }}>
             <em className="text-muted">Recorded audio:</em>
             <audio
               controls
@@ -62,7 +62,7 @@ const NotePage = () => {
             />
           </Stack>
         )}
-        <Tab.Container defaultActiveKey="edit">
+        <Tab.Container defaultActiveKey="chat">
           <Nav variant="tabs">
             <Nav.Item>
               <Nav.Link eventKey="edit" variant="secondary">
@@ -99,7 +99,7 @@ const NotePage = () => {
                   position: "relative",
                   right: "30%",
                   width: "160%",
-                  minHeight: "100%",
+                  minHeight: `calc(100vh - ${audio ? 180 : 200}px)`,
                 }}
               >
                 <Col>
@@ -117,7 +117,7 @@ const NotePage = () => {
                   position: "relative",
                   right: "30%",
                   width: "160%",
-                  minHeight: "100%",
+                  minHeight: `calc(100vh - ${audio ? 180 : 200}px)`,
                 }}
               >
                 <Col>
@@ -130,7 +130,6 @@ const NotePage = () => {
             </Tab.Pane>
           </Tab.Content>
         </Tab.Container>
-        <div className="pt-5" /> {/* Spacer */}
       </Stack>
     </div>
   );

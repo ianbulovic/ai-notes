@@ -42,7 +42,11 @@ export default function ChatArea({ note }) {
   };
 
   return (
-    <div className="h-100">
+    <div
+      style={{
+        height: "calc(100vh - 250px)",
+      }}
+    >
       <ChatCard chatHistory={chatHistory} thinking={thinking} />
       <InputGroup className="mt-3">
         <Form.Control

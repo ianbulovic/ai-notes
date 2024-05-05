@@ -16,9 +16,20 @@ export default function NoteEditor({ note, setNote }) {
 
   const resizeTextarea = () => {
     const textarea = textareaRef.current;
-    textarea.style.height = "auto";
-    const height = textarea.scrollHeight;
+
+    // use a clone to measure the height of the textarea
+    // this prevents the window from scrolling to the top when the textarea is resized
+    const clone = textarea.cloneNode();
+    clone.style.width = `${textarea.offsetWidth}px`;
+    clone.style.height = "auto";
+    clone.style.position = "absolute";
+    document.body.appendChild(clone);
+    const height = clone.scrollHeight;
+
+    // set the height of the textarea
     textarea.style.height = `${Math.max(height, 300)}px`;
+
+    clone.remove();
   };
   useEffect(resizeTextarea, []);
 

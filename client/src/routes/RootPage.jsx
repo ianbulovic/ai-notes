@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Pagination, Stack } from "react-bootstrap";
+import { debounce } from "lodash";
 
 import Header from "../components/Header";
 import SearchControls from "../components/SearchControls";
@@ -51,8 +52,14 @@ export default function RootPage() {
   const [pageNumber, setPageNumber] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const updateNotes = (query, sort, tags, resultsPerPage, pageNumber) => {
-    getNotes(query, sort, tags, resultsPerPage, pageNumber).then(
+  const updateNotes = ({
+    searchQuery,
+    sortBy,
+    filterTags,
+    resultsPerPage,
+    pageNumber,
+  }) => {
+    getNotes(searchQuery, sortBy, filterTags, resultsPerPage, pageNumber).then(
       ({ notes, pages }) => {
         setNotes(notes);
         setTotalPages(pages);
@@ -60,9 +67,32 @@ export default function RootPage() {
     );
   };
 
+  const debouncedUpdateNotes = useRef(
+    debounce((params) => updateNotes(params), 200, {
+      trailing: true,
+    })
+  ).current;
+
   useEffect(() => {
-    updateNotes(searchQuery, sortBy, filterTags, resultsPerPage, pageNumber);
-  }, [searchQuery, sortBy, filterTags, resultsPerPage, pageNumber]);
+    debouncedUpdateNotes({
+      searchQuery,
+      sortBy,
+      filterTags,
+      resultsPerPage,
+      pageNumber,
+    });
+
+    return () => {
+      debouncedUpdateNotes.cancel();
+    };
+  }, [
+    searchQuery,
+    sortBy,
+    filterTags,
+    resultsPerPage,
+    pageNumber,
+    debouncedUpdateNotes,
+  ]);
 
   useEffect(() => {
     document.title = APP_TITLE;
@@ -88,6 +118,7 @@ export default function RootPage() {
                   <NoteCard
                     key={note.id}
                     note={note}
+                    searchQuery={searchQuery}
                     onDelete={() =>
                       updateNotes(
                         searchQuery,

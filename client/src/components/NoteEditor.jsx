@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Form, Stack } from "react-bootstrap";
+import { debounce } from "lodash";
 
 import { updateNote, updateNoteEmbedding } from "../api";
 
@@ -10,9 +11,6 @@ export default function NoteEditor({ note, setNote }) {
   const [title, setTitle] = useState(note.title);
   const [content, setContent] = useState(note.content);
   const [dirty, setDirty] = useState(false);
-  const [lastSaved, setLastSaved] = useState(Date.now());
-  const [embeddingDirty, setEmbeddingDirty] = useState(false);
-  const [lastEmbeddingSaved, setLastEmbeddingSaved] = useState(Date.now());
 
   const resizeTextarea = () => {
     const textarea = textareaRef.current;
@@ -33,67 +31,43 @@ export default function NoteEditor({ note, setNote }) {
   };
   useEffect(resizeTextarea, []);
 
+  const sendUpdate = ({ newTitle, newContent }) => {
+    updateNote(note.id, { title: newTitle, content: newContent }).then(
+      (responseNote) => {
+        setNote(responseNote);
+      }
+    );
+  };
+
+  const debouncedSendUpdate = useRef(
+    debounce(sendUpdate, 1000, { leading: true, trailing: true })
+  ).current;
+
+  useEffect(() => {
+    if (title !== note.title || content !== note.content) {
+      setDirty(true);
+      debouncedSendUpdate({ newTitle: title, newContent: content });
+    } else {
+      setDirty(false);
+    }
+  }, [title, content, note.title, note.content, debouncedSendUpdate]);
+
   const handleTitleChange = (e) => {
     setTitle(e.target.value);
-    setDirty(true);
-    setEmbeddingDirty(true);
   };
 
   const handleContentChange = (e) => {
     setContent(e.target.value);
     resizeTextarea();
-    setDirty(true);
-    setEmbeddingDirty(true);
   };
 
   useEffect(() => {
-    if (!dirty) return;
+    return () => updateNoteEmbedding(note.id);
+  }, [note.id]);
 
-    const save = (now) => {
-      setLastSaved(now);
-      updateNote(note.id, { title, content }).then((responseNote) => {
-        setNote(responseNote);
-        if (responseNote.title === title && responseNote.content === content) {
-          setDirty(false);
-        }
-      });
-    };
-
-    const now = Date.now();
-    if (now - lastSaved > 1000) {
-      save(now);
-    } else {
-      const timeout = setTimeout(() => {
-        save(Date.now());
-      }, 1000);
-      return () => clearTimeout(timeout);
-    }
-  }, [content, dirty, lastSaved, note.id, setNote, title]);
-
-  // useEffect(() => {
-  //   if (!embeddingDirty) return;
-
-  //   const saveEmbedding = (now) => {
-  //     setLastEmbeddingSaved(now);
-  //     updateNoteEmbedding(note.id).then((responseNote) => {
-  //       setNote(responseNote);
-  //       if (responseNote.content === content) {
-  //         setEmbeddingDirty(false);
-  //       }
-  //     });
-  //   };
-
-  //   const now = Date.now();
-
-  //   if (now - lastEmbeddingSaved > 5000) {
-  //     saveEmbedding(now);
-  //   } else {
-  //     const timeout = setTimeout(() => {
-  //       saveEmbedding(Date.now());
-  //     }, 5000);
-  //     return () => clearTimeout(timeout);
-  //   }
-  // }, [content, embeddingDirty, lastEmbeddingSaved, note.id, setNote]);
+  window.addEventListener("beforeunload", () => {
+    updateNoteEmbedding(note.id);
+  });
 
   return (
     <Stack direction="vertical" gap={3} className="mx-auto pb-5">

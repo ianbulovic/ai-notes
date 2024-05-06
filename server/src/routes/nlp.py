@@ -93,7 +93,7 @@ def rag():
             "role": "user",
             "content": f"""Here is my query: "{query}" 
             Here are the notes to analyze:
-            {"\n\n".join([f"Note ID: {note.id}\n    Title: {note.title}\n    Content: {note.content}" for note in notes])}
+            {"\n\n".join([f"Note ID: {note.id}\n    Title: {note.title}\n    Content: {' '.join(note.content.splitlines())}" for note in notes])}
             
             
             Now please consider the notes above and provide a list of comma-separated note IDs relevant to the query "{query}", or "None" if no notes are relevant. Do not say anything else in your response.""",
@@ -112,7 +112,7 @@ def rag():
             note_ids = [int(id) for id in content.split(",")]
             print(f"Parsed list of IDs: {note_ids}")
             notes = Note.query.filter(Note.id.in_(note_ids)).all()
-    except Exception as e:
+    except Exception:
         print(f"Error extracting note IDs from response '{content}'")
 
     # print(f"Resulting Notes: {[note.to_dict() for note in notes]}")

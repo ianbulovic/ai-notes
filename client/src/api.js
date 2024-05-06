@@ -174,6 +174,6 @@ export async function addMediaToNote(noteId, mediaId) {
 // ----- Transcription API ----- //
 
 export async function transcribeRecording(mediaId) {
-  const response = await apiCall("post", `${API_URL}/transcribe/${mediaId}`);
+  const response = await apiCall("post", `/transcribe/${mediaId}`);
   return response.data;
 }

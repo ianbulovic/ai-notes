@@ -2,13 +2,34 @@ import axios from "axios";
 
 import { API_URL } from "./constants";
 
-export async function getHealth() {
+// Wrapper for axios to make API calls
+
+async function apiCall(method, endpoint, data = null) {
+  const url = `${API_URL}${endpoint}`;
   try {
-    const response = await axios.get(`${API_URL}/health`);
-    return response.data;
+    switch (method) {
+      case "get":
+        return await axios.get(url);
+      case "post":
+        return await axios.post(url, data);
+      case "put":
+        return await axios.put(url, data);
+      case "delete":
+        return await axios.delete(url);
+      default:
+        return null;
+    }
   } catch (error) {
-    return false;
+    console.error(error);
+    return null;
   }
+}
+
+// ----- Health API ----- //
+
+export async function getHealth() {
+  const response = await apiCall("get", "/health");
+  return response.data;
 }
 
 // ----- Notes API ----- //
@@ -20,7 +41,7 @@ export async function getNotes(
   resultsPerPage = 10,
   pageNumber = 1
 ) {
-  let url = `${API_URL}/notes?`;
+  let url = `/notes?`;
   if (query) {
     url = url + `q=${query}&`;
   }
@@ -31,101 +52,92 @@ export async function getNotes(
     url = url + `tags=${tags.map((tag) => tag.id).join(",")}&`;
   }
   url = url + `n=${resultsPerPage}&page=${pageNumber}`;
-  try {
-    const response = await axios.get(url);
-    return response.data;
-  } catch (error) {
-    return { notes: null, pages: 1 };
-  }
+
+  const response = await apiCall("get", url);
+  return response.data;
 }
 
 export async function getNoteById(id) {
-  const response = await axios.get(`${API_URL}/notes/${id}`);
+  const response = await apiCall("get", `/notes/${id}`);
   return response.data;
 }
 
 export async function createNote() {
-  const response = await axios.post(`${API_URL}/notes`);
+  const response = await apiCall("post", "/notes");
   return response.data;
 }
 
 export async function updateNote(id, note) {
-  const response = await axios.put(`${API_URL}/notes/${id}`, note);
+  const response = await apiCall("put", `/notes/${id}`, note);
   return response.data;
 }
 
 export async function openNoteById(id) {
-  const response = await axios.post(`${API_URL}/notes/${id}/open`);
+  const response = await apiCall("post", `/notes/${id}/open`);
   return response.data;
 }
 
 export async function deleteNote(id) {
-  const response = await axios.delete(`${API_URL}/notes/${id}`);
+  const response = await apiCall("delete", `/notes/${id}`);
   return response.data;
 }
 
 export async function updateNoteEmbedding(id) {
-  const response = await axios.post(`${API_URL}/embed/${id}`);
+  const response = await apiCall("post", `/embed/${id}`);
   return response.data;
 }
 
 // ----- Tags API ----- //
 
 export async function getTags() {
-  try {
-    const response = await axios.get(`${API_URL}/tags`);
-    return response.data;
-  } catch (error) {
-    return { tags: [] };
-  }
+  const response = await apiCall("get", "/tags");
+  return response.data;
 }
 
 export async function getTagById(id) {
-  const response = await axios.get(`${API_URL}/tags/${id}`);
+  const response = await apiCall("get", `/tags/${id}`);
   return response.data;
 }
 
 export async function createTag(tag) {
-  const response = await axios.post(`${API_URL}/tags`, tag);
+  const response = await apiCall("post", "/tags", tag);
   return response.data;
 }
 
 export async function updateTag(id, tag) {
-  const response = await axios.put(`${API_URL}/tags/${id}`, tag);
+  const response = await apiCall("put", `/tags/${id}`, tag);
   return response.data;
 }
 
 export async function deleteTag(id) {
-  const response = await axios.delete(`${API_URL}/tags/${id}`);
+  const response = await apiCall("delete", `/tags/${id}`);
   return response.data;
 }
 
 export async function addTagToNote(noteId, tagId) {
-  const response = await axios.post(`${API_URL}/notes/${noteId}/tags/${tagId}`);
+  const response = await apiCall("post", `/notes/${noteId}/tags/${tagId}`);
   return response.data;
 }
 
 export async function removeTagFromNote(noteId, tagId) {
-  const response = await axios.delete(
-    `${API_URL}/notes/${noteId}/tags/${tagId}`
-  );
+  const response = await apiCall("delete", `/notes/${noteId}/tags/${tagId}`);
   return response.data;
 }
 
 // ----- Chat, Summary, and RAG API ----- //
 
 export async function chat(messages) {
-  const response = await axios.post(`${API_URL}/chat`, { messages });
+  const response = await apiCall("post", "/chat", { messages });
   return response.data;
 }
 
 export async function summarize(text) {
-  const response = await axios.post(`${API_URL}/summarize`, { text });
+  const response = await apiCall("post", "/summarize", { text });
   return response.data;
 }
 
 export async function getNotesByQuery(query, nResults) {
-  const response = await axios.post(`${API_URL}/rag`, { query, nResults });
+  const response = await apiCall("post", "/rag", { query, nResults });
   return response.data;
 }
 
@@ -146,13 +158,6 @@ export async function uploadRecording(blob) {
   }
 }
 
-export async function addMediaToNote(noteId, mediaId) {
-  const response = await axios.post(
-    `${API_URL}/notes/${noteId}/media/${mediaId}`
-  );
-  return response.data;
-}
-
 export async function getMediaById(id) {
   // request blob
   const response = await axios.get(`${API_URL}/media/${id}`, {
@@ -161,9 +166,14 @@ export async function getMediaById(id) {
   return response.data;
 }
 
+export async function addMediaToNote(noteId, mediaId) {
+  const response = await apiCall("post", `/notes/${noteId}/media/${mediaId}`);
+  return response.data;
+}
+
 // ----- Transcription API ----- //
 
 export async function transcribeRecording(mediaId) {
-  const response = await axios.post(`${API_URL}/transcribe/${mediaId}`);
+  const response = await apiCall("post", `${API_URL}/transcribe/${mediaId}`);
   return response.data;
 }

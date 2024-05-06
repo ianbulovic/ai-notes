@@ -107,6 +107,7 @@ def update_note(note_id):
             if hasattr(note, key):
                 setattr(note, key, value)
             else:
+                print(f"Invalid key for note '{key}'")
                 return {"error": f"Invalid key '{key}'"}, 400
     note.last_modified = func.now()
     db.session.commit()

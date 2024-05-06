@@ -16,6 +16,8 @@ import { chat, getNotesByQuery } from "../api";
 import { APP_TITLE } from "../constants";
 import NoteCard from "./NoteCard";
 
+import "./RagArea.css";
+
 const generateSystemMessage = (notes) => {
   return {
     role: "system",
@@ -102,6 +104,7 @@ export default function RagArea({ note }) {
       {response && (
         <Card className="my-5 p-2 bg-secondary">
           <ReactMarkdown
+            className={"p-0 m-0 markdown-container"}
             remarkPlugins={[remarkGfm]}
             components={{
               h1: "h2",

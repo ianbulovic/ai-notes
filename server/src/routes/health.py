@@ -20,12 +20,4 @@ def get_db_health():
 
 @app.route("/api/health", methods=["GET"])
 def health():
-    return {
-        "status": "UP",
-        "checks": {
-            "db": get_db_health(),
-            "chromadb": chromadb_client.alive(),
-            "ollama": ollama_client.alive(),
-            "whisper": whisper_client.alive(),
-        },
-    }
+    return {"status": "UP"}

@@ -1,5 +1,9 @@
 import React from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Card } from "react-bootstrap";
+
+import "./ChatBubble.css";
 
 export default function ChatBubble({ role, content }) {
   var style = {
@@ -26,7 +30,22 @@ export default function ChatBubble({ role, content }) {
       className="px-2 py-1"
       style={style}
     >
-      {content}
+      {role === "user" ? (
+        content
+      ) : (
+        <ReactMarkdown
+          className="p-0 m-0 markdown-container"
+          remarkPlugins={[remarkGfm]}
+          components={{
+            h1: "h2",
+            h2: "h3",
+            h3: "h4",
+            h4: "h5",
+          }}
+        >
+          {content}
+        </ReactMarkdown>
+      )}
     </Card>
   );
 }

@@ -9,6 +9,8 @@ import {
   Card,
 } from "react-bootstrap";
 import SendIcon from "@mui/icons-material/Send";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import { chat, getNotesByQuery } from "../api";
 import { APP_TITLE } from "../constants";
@@ -98,7 +100,19 @@ export default function RagArea({ note }) {
         </Stack>
       )}
       {response && (
-        <Card className="my-5 p-2 bg-secondary">{response.content}</Card>
+        <Card className="my-5 p-2 bg-secondary">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              h1: "h2",
+              h2: "h3",
+              h3: "h4",
+              h4: "h5",
+            }}
+          >
+            {response.content}
+          </ReactMarkdown>
+        </Card>
       )}
       {references.length > 0 && (
         <Stack gap={3}>

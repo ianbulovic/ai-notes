@@ -97,6 +97,13 @@ export default function RootPage() {
 
   useEffect(() => {
     document.title = APP_TITLE;
+    const darkMode = localStorage.getItem("darkMode");
+    const html = document.querySelector("html");
+    if (darkMode === "true") {
+      html.setAttribute("data-bs-theme", "dark");
+    } else {
+      html.removeAttribute("data-bs-theme");
+    }
   });
 
   return (

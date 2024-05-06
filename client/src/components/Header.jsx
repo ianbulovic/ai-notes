@@ -23,7 +23,7 @@ const Header = () => {
   }, []);
 
   return (
-    <Navbar bg="dark" expand="lg" className="px-4 border-bottom">
+    <Navbar expand="lg" className="px-4 border-bottom">
       <LinkContainer to="/">
         <Navbar.Brand>{APP_TITLE}</Navbar.Brand>
       </LinkContainer>

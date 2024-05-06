@@ -102,7 +102,6 @@ class ChromadbClient:
         for id, distance in zip(result["ids"][0], result["distances"][0]):  # type: ignore
             if max_distance is not None and distance > max_distance:
                 break
-            print(f"ID: {id}, Distance: {distance}")
             ids.append(int(id))
             distances.append(distance)
         return ids, distances

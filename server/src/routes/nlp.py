@@ -99,23 +99,17 @@ def rag():
             Now please consider the notes above and provide a list of comma-separated note IDs relevant to the query "{query}", or "None" if no notes are relevant. Do not say anything else in your response.""",
         },
     ]
-    print(f"Query: {query}")
-    print(f"Messages: {messages}")
     response = ollama_client.chat(messages)
     content = response["message"]["content"]
-    print(f"Response: {content}")
 
     try:
         if content.lower() == "none":
             notes = []
         else:
             note_ids = [int(id) for id in content.split(",")]
-            print(f"Parsed list of IDs: {note_ids}")
             notes = Note.query.filter(Note.id.in_(note_ids)).all()
     except Exception:
         print(f"Error extracting note IDs from response '{content}'")
-
-    # print(f"Resulting Notes: {[note.to_dict() for note in notes]}")
 
     return {"notes": [note.to_dict() for note in notes]}
 

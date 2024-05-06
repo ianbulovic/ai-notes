@@ -15,8 +15,12 @@ class Server:
         self.app.config["FLASK_ADMIN_SWATCH"] = "cerulean"
         self.app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
         self.app.config["SECRET_KEY"] = "super secret key"
+
         CORS(self.app)
-        self.db = SQLAlchemy(self.app)
+        self.db = SQLAlchemy(
+            self.app,
+            engine_options={"pool_size": 1, "max_overflow": 0, "pool_recycle": 10},
+        )
 
     def run(self):
         """Spin up the backends and start the server."""

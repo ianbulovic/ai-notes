@@ -127,18 +127,3 @@ admin = Admin(app, name="Notes", template_mode="bootstrap3")
 admin.add_view(NoteView(Note, db.session))
 admin.add_view(ModelView(Tag, db.session))
 admin.add_view(ModelView(Media, db.session))
-
-
-# from .. import chromadb_client, ollama_client, config
-
-# ids: list[str] = []
-# docs: list[str] = []
-# embeddings: list[Sequence[float]] = []
-# for note in Note.query.all():
-#     model = config["ollama"]["embed_model"]
-#     emb = ollama_client.embeddings(model, prompt=note.content)
-#     ids.append(str(note.id))
-#     docs.append(note.content)
-#     embeddings.append(emb)
-
-# chromadb_client.add(ids, docs, embeddings)

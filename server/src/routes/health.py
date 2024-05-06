@@ -26,6 +26,6 @@ def health():
             "db": get_db_health(),
             "chromadb": chromadb_client.alive(),
             "ollama": ollama_client.alive(),
-            # "whisper": whisper_client.alive(),
+            "whisper": whisper_client.alive(),
         },
     }

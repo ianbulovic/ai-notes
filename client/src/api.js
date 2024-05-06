@@ -4,23 +4,27 @@ import { API_URL } from "./constants";
 
 // Wrapper for axios to make API calls
 
-async function apiCall(method, endpoint, data = null) {
+async function apiCall(method, endpoint, data = null, timeout = 0) {
+  const instance = axios.create({
+    baseURL: API_URL,
+    timeout,
+  });
   const url = `${API_URL}${endpoint}`;
   try {
     switch (method) {
       case "get":
-        return await axios.get(url);
+        return await instance.get(url);
       case "post":
-        return await axios.post(url, data);
+        return await instance.post(url, data);
       case "put":
-        return await axios.put(url, data);
+        return await instance.put(url, data);
       case "delete":
-        return await axios.delete(url);
+        return await instance.delete(url);
       default:
         return null;
     }
   } catch (error) {
-    console.error(error);
+    console.error(`API Error: ${endpoint}`);
     return null;
   }
 }
@@ -28,7 +32,7 @@ async function apiCall(method, endpoint, data = null) {
 // ----- Health API ----- //
 
 export async function getHealth() {
-  const response = await apiCall("get", "/health");
+  const response = await apiCall("get", "/health", null, 5000);
   return response.data;
 }
 

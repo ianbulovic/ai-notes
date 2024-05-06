@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.pool import NullPool
 from flask_cors import CORS
 
 from .backends import ChromadbClient, OllamaClient, WhisperClient, BackendManager
@@ -17,10 +18,7 @@ class Server:
         self.app.config["SECRET_KEY"] = "super secret key"
 
         CORS(self.app)
-        self.db = SQLAlchemy(
-            self.app,
-            engine_options={"pool_size": 1, "max_overflow": 0, "pool_recycle": 10},
-        )
+        self.db = SQLAlchemy(self.app, engine_options={"poolclass": NullPool})
 
     def run(self):
         """Spin up the backends and start the server."""

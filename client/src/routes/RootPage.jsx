@@ -49,6 +49,7 @@ export default function RootPage() {
   const [sortBy, setSortBy] = useState("opened");
   const [filterTags, setFilterTags] = useState([]);
 
+  // eslint-disable-next-line no-unused-vars
   const [resultsPerPage, setResultsPerPage] = useState(20);
   const [pageNumber, setPageNumber] = useState(1);
   const [totalPages, setTotalPages] = useState(1);

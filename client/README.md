@@ -1,3 +1,0 @@
-# AI Notes - Client
-
-Coming soon...

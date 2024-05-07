@@ -1,3 +1,0 @@
-# AI Notes - Server
-
-Coming soon...

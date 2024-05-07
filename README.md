@@ -28,12 +28,41 @@ The client for AI Notes is a React application that provides a simple user inter
     - [Server](#server)
     - [Client](#client)
   - [Table of Contents](#table-of-contents)
-  - [Installation](#installation)
+  - [Installation with Docker](#installation-with-docker)
+  - [Manual Installation](#manual-installation)
     - [Server](#server-1)
     - [Client](#client-1)
   - [Usage](#usage)
 
-## Installation
+## Installation with Docker
+
+Dockerfiles are provided for both the server and client, and Docker Images are coming soon! In the meantime, you can build the images yourself:
+
+1. Clone the repository:
+
+    ```bash
+    git clone --recurse-submodules
+    cd ai-notes
+    ```
+
+2. Build and run the server image using docker-compose:
+
+    ```bash
+    cd server
+    docker-compose up
+    ```
+
+3. In a separate terminal, build and run the client image:
+
+    ```bash
+    cd client
+    docker build -t ai-notes-client .
+    docker run -it -p 5000:80 ai-notes-client
+    ```
+
+4. Navigate to `http://localhost:5000` in your browser to use the application.
+
+## Manual Installation
 
 1. Clone the repository:
 
